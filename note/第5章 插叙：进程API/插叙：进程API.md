@@ -163,3 +163,70 @@ prompt> wc p3.c > newfile.txt
 ```
 
 在上面的例子中，wc的输出结果被重定向（redirect）到文件newfile.txt中（通过newfile.txt 之前的大于号来指明重定向）。shell 实现结果重定向的方式也很简单，当完成子进程的创建 后，shell 在调用 exec()之前先关闭了标准输出（standard output），打开了文件 newfile.txt。 这样，即将运行的程序 wc 的输出结果就被发送到该文件，而不是打印谁屏幕上。
+
+下面是运行 p4.c 的结果：
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+
+int
+main(int argc, char *argv[]) {
+	int rc = fork();
+	if (rc < 0) { // fork failed; exit
+		fprintf(stderr, "fork failed\n");
+		exit(1);
+	} else if (rc == 0) { // child: redirect standard output to a file
+		close(STDOUT_FILENO);
+		open("./p4.output", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+
+		// now exec "wc"...
+		char *myargs[3];
+		myargs[0] = strdup("wc"); // program: "wc" (word count)
+		myargs[1] = strdup("p4.c"); // argument: file to count
+		myargs[2] = NULL; // marks end of array
+		execvp(myargs[0], myargs); // runs word count
+	} else { // parent goes down this path (main)
+		int wc = wait(NULL);
+	}
+	return 0;
+}
+```
+
+> - `O_CREAT`: 如果文件不存在，则创建文件。
+> - `O_WRONLY`: 打开文件以写入（写入操作）。
+> - `O_TRUNC`: 如果文件存在，将其截断（清空）为零长度。
+> - `S_IRWXU`: 这是一个宏，表示文件所有者（user）有读、写、执行的权限。在八进制中，`S_IRWXU` 等于 700。
+
+UNIX 管道也是用类似的方式实现的，但用的是 pipe()系统调用。
+
+在这种情况下，一个进程的输出被链接到了一个内核管道（pipe）上（队列），另一个进程的输入也被连接到了同一个管道上。
+
+因此，前一个进程的输出无缝地作为后一个进程的输入，许多命令可以用这种方式串联在一起，共同完成某项任务。
+
+比如通过将 grep、wc 命令用管谁连接可以完成 从一个文件中查找某个词，并统计其出现次数的功能：grep -o foo file | wc -l。
+
+> - `grep -o foo file`: 这部分命令使用 `grep` 工具， `-o` 选项表示只输出匹配到的部分（而不是整行），然后查找文件 "file" 中所有包含字符串 "foo" 的匹配项。
+> - `wc -l`: 这部分命令使用 `wc` 工具， `-l` 选项表示统计行数。
+
+> **补充：RTFM——阅读 man 手册**
+>
+> 很多时候，本书提到某个系统调用或库函数时，会建议阅读 man 手册。man 手册是 UNIX 系统中最原生的文档，要知道它的出现甚至早于网络（Web）
+>
+> 花时间阅读 man 手册是系统程序员成长的必经之路。手册里有许多有用的隐藏彩蛋。尤其是你正在 使用的 shell（如 tcsh 或 bash），以及程序中需要使用的系统调用（以便了解返回值和异常情况）。 
+>
+> 最后，阅读 man 手册可以避免尴尬。当你询问同事某个 fork 细节时，他可能会回复：“RTFM”。 这是他在有礼貌地督促你阅读 man 手册（Read the Man）。RTFM 中的 F 只是为这个短语增加了一点 色彩……
+
+**5.5 其他 API**
+
+除了上面提到的 fork()、exec()和 wait()之外，在UNIX 中还有其他许多与进程交互的方式。
+
+比如可以通过 kill()系统调用向进程发送信号（signal），包括要求进程睡眠、终止或其他有用的指令。
+
+此外还有许多非常有用的命令行工具。比如通过 ps 命令来查看当前谁运行的进程，阅 读 man 手册来了解 ps 命令所接受的参数。
+
+工具 top 也很有用，它展示当前系统中进程消耗 CPU 或其他资源的情况。
