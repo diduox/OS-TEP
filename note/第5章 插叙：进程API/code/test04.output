@@ -1,0 +1,13 @@
+total 124
+-rwxrwxr-x 1 shifty shifty 16784 Jan 18 23:07 test01
+-rw-rw-r-- 1 shifty shifty   292 Jan 18 23:07 test01.c
+-rwxrwxr-x 1 shifty shifty 16912 Jan 18 23:39 test02
+-rw-rw-r-- 1 shifty shifty   610 Jan 18 23:39 test02.c
+-rwx------ 1 shifty shifty  3101 Jan 18 23:42 test02.txt
+-rwxrwxr-x 1 shifty shifty 16944 Jan 19 05:15 test03a
+-rw-rw-r-- 1 shifty shifty   785 Jan 19 05:15 test03a.c
+-rwxrwxr-x 1 shifty shifty 16960 Jan 19 05:43 test03b
+-rw-rw-r-- 1 shifty shifty   610 Jan 19 05:43 test03b.c
+-rwxrwxr-x 1 shifty shifty 16920 Jan 19 06:09 test04
+-rw-rw-r-- 1 shifty shifty   363 Jan 19 06:09 test04.c
+-rwx------ 1 shifty shifty     0 Jan 19 06:09 test04.output
